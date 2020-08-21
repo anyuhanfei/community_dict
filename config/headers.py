@@ -1,7 +1,5 @@
-import requests
-
-
-cookies = {
+#安居客 headers
+安居客_cookies = {
     'sessid': 'F103DD01-4DF4-85EC-1CAD-CA4944686432',
     'aQQ_ajkguid': '886013D0-95B6-09D3-2EA8-741CA3A84C81',
     'lps': 'http%3A%2F%2Fwww.anjuke.com%2Fshanghai%2Fcm%2F%7C',
@@ -23,13 +21,7 @@ cookies = {
     'xzuid': 'bf7d14a5-457f-48d3-8374-35e814c92c29'
 }
 
-headers = {
+安居客_headers = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
 }
-
-res = requests.get('https://www.anjuke.com/shanghai/cm/', headers=headers, cookies=cookies)
-# print(res.content.decode())
-
-with open('./shanghai.html', 'w', encoding="utf-8") as f:
-    f.write(res.content.decode())
