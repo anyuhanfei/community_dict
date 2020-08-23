@@ -50,7 +50,7 @@ class 链家:
                 page += 1
                 time.sleep(config.time_interval)
             # 将数据保存至文件中
-            json.write_json_file(config.链家_plot_json_file_name.format(city_name=city_name), plot_dict)
+            json.write_json_file(config.链家_plot_json_file_name.format(file_name=city_name), plot_dict)
 
     def index(self):
         if self.have_city_json is False:
