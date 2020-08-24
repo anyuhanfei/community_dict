@@ -31,7 +31,6 @@ class 智慧小区:
                 area_dict[area_name] = {'area_name': area_name, 'area_url': self.plot_list_url.format(area_url=area_url, page="{page}")}
             page += 1
             time.sleep(config.time_interval)
-            break
         operation_file.write_json_file(config.智慧小区_area_json_file_name, area_dict)
 
     def get_plots(self):
@@ -55,7 +54,6 @@ class 智慧小区:
                     plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': config.智慧小区_plot_detail_url.format(plot_url=plot_url, page="{page}")}
                 page += 1
                 time.sleep(config.time_interval)
-                break
             operation_file.write_json_file(config.智慧小区_plot_json_file_name.format(area_name=area_name), plot_dict)
 
     def run(self):
