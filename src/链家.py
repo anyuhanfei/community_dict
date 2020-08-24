@@ -3,7 +3,7 @@ import math
 import time
 
 from config import config
-from utils import gather, json
+from utils import gather, operation_file
 
 
 class 链家:
@@ -27,8 +27,8 @@ class 链家:
         city_etree = city_etree.xpath(self.city_list_xpath)
         citys = dict()
         for i in range(0, len(city_etree)):
-            citys[i] = {'city_name': city_etree[i].xpath('text()')[0], 'city_url': city_etree[i].xpath('@href')[0]}
-        json.write_json_file(config.链家_city_json_file_name, citys)
+            citys[i] = {'city_name': city_etree[i].xpath('text()')[0], 'city_url': config.链家_plot_list_url.format(city_url=city_etree[i].xpath('@href')[0], page="{page}")}
+        operation_file.write_json_file(config.链家_city_json_file_name, citys)
 
     def get_all_city_plots(self):
         '''获取所有城市的小区
@@ -37,10 +37,10 @@ class 链家:
         判断当前城市小区的 JSON 文件是否存在, 如果存在则说明此城市已完成采集, 跳过当前城市
         通过判断则采集当前城市小区数据
         '''
-        citys = json.read_json_file(config.链家_city_json_file_name)
+        citys = operation_file.read_json_file(config.链家_city_json_file_name)
 
         for i in range(0, len(citys)):
-            city_name, city_url = citys[str(i)]['city_name'], config.链家_plot_list_url.format(city_url=citys[str(i)]['city_url'], page="{page}")
+            city_name, city_url = citys[str(i)]['city_name'], citys[str(i)]['city_url']
             if os.path.exists(config.链家_plot_json_file_name.format(file_name=city_name)) is True:
                 continue
             self._get_plots(city_name, city_url)
@@ -81,7 +81,7 @@ class 链家:
             page += 1
             time.sleep(config.time_interval)
         # 将数据保存至文件中
-        json.write_json_file(config.链家_plot_json_file_name.format(file_name=city_name), plot_dict)
+        operation_file.write_json_file(config.链家_plot_json_file_name.format(file_name=city_name), plot_dict)
 
     def run(self):
         '''采集器运行

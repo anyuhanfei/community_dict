@@ -16,9 +16,7 @@ time_interval = 5
 
 
 '''
-链家配置
-
-先采集所有的城市信息， 再采集每个城市的小区的基本信息（小区名和详情页的url），最后采集小区的详情信息
+链家
 '''
 链家_headers = universal_headers
 
@@ -27,3 +25,13 @@ time_interval = 5
 
 链家_city_json_file_name = "./temp/链家_city.json"
 链家_plot_json_file_name = "./data/链家/{file_name}小区.json"
+
+'''
+智慧小区
+'''
+智慧小区_area_list_url = 'https://www.zhihuixiaoqu.com/index/index/xiaoqudaquan?page={page}'
+智慧小区_plot_list_url = 'https://www.zhihuixiaoqu.com/index/index/{area_url}&page={page}'
+智慧小区_plot_detail_url = 'https://www.zhihuixiaoqu.com/index/index/{plot_url}'
+
+智慧小区_area_json_file_name = "./temp/智慧小区_area.json"
+智慧小区_plot_json_file_name = "./data/智慧小区/{area_name}小区.json"
