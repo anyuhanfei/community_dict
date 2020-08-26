@@ -1,18 +1,24 @@
 import os
 import math
-import time
 
 from config import config
-from utils import gather, operation_file
+from utils import gather, operation_file, common
 
 
 class 链家:
     '''采集链家网的小区数据'''
     city_url = config.链家_city_list_url
 
-    city_list_xpath = '//div[@class="city_province"]/ul/li/a'
-    page_maximum_xpath = '//h2[@class="total fl"]/span/text()'
-    plot_list_xpath = '//div[@class="info"]/div[@class="title"]/a'
+    headers = config.universal_headers
+
+    city_list_xpath = '//div[@class="city_province"]/ul/li/a'  # 城市列表xpath
+    page_maximum_xpath = '//h2[@class="total fl"]/span/text()'  # 小区列表最大页码xpath
+    plot_list_xpath = '//div[@class="info"]/div[@class="title"]/a'  # 小区列表xpath
+    plot_detail_address_xpath = '//div[@class="detailDesc"]/text()'  # 小区详情地址xpath
+    plot_detail_area_xpath = '//div[@class="fl l-txt"]/a/text()'  # 小区详情地址链xpath
+    plot_detail_nautica_xpath = '//span[@class="actshowMap"]/@mendian'  # 小区经纬度xpath
+    plot_detail_other_keys_xpath = '//span[@class="xiaoquInfoLabel"]/text()'  # 小区其他详情数据的键xpath
+    plot_detail_other_values_xpath = '//span[@class="xiaoquInfoContent"]/text()'  # 小区其他详情数据的值xpath
 
     def __init__(self):
         self.have_city_json = os.path.exists(config.链家_city_json_file_name)
@@ -23,7 +29,7 @@ class 链家:
         从 etree 对象中得到城市信息所在的 a 标签
         从 a 标签中取出城市名和城市对应的 URL, 保存至 JSON 文件中
         '''
-        city_etree = gather.get_html_to_etree(self.city_url, headers=config.universal_headers)
+        city_etree = gather.get_html_to_etree(self.city_url, headers=self.headers)
         city_etree = city_etree.xpath(self.city_list_xpath)
         citys = dict()
         for i in range(0, len(city_etree)):
@@ -47,7 +53,7 @@ class 链家:
 
     def _get_plots(self, city_name, city_url):
         '''获取城市中的小区
-        初始化当前页码, 最大页码使其能通过循环的判定
+        初始化当前页码, 最大页码, 使其能通过循环的判定, 以进行第一次循环
         将当前页码与 URL 组合, 访问此 URL 并将 HTMl 转换为 etree 对象
         第一次循环, 需要采集到最大页码 (此处如果报错, 说明当前城市无小区信息或者被服务端检测到并拦截了)
         从 etree 对象中得到小区信息所在的 a 标签
@@ -59,12 +65,11 @@ class 链家:
         return:
             none
         '''
-        # 循环全部列表
         page_maximum, page, plot_dict = 1, 1, dict()
         while page <= page_maximum:
             plot_url = city_url.format(page=page)
-            print('开始采集：{url}'.format(url=plot_url))
-            plot_etree = gather.get_html_to_etree(plot_url, headers=config.universal_headers)
+            common.print_and_sleep('开始采集：{url}'.format(url=plot_url))
+            plot_etree = gather.get_html_to_etree(plot_url, headers=self.headers)
             # 获取最大页码
             if page_maximum == 1 and page == 1:
                 try:
@@ -79,9 +84,46 @@ class 链家:
                 plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': plot_url}
             # 下次循环的准备
             page += 1
-            time.sleep(config.time_interval)
         # 将数据保存至文件中
         operation_file.write_json_file(config.链家_plot_json_file_name.format(file_name=city_name), plot_dict)
+
+    def get_all_plot_detail(self):
+        # 读取链家目录下全部文件
+        # 读取每个文件中的 json 数据
+        # 判断每个小区数据, 如果没有详细数据则获取
+        # 每获取 100 个小区数据或者本文件读取结束, 保存
+        plot_files = os.listdir(config.链家_plot_json_dir_name)
+        for plot_file in plot_files:
+            plot_file_name = config.链家_plot_json_dir_name + plot_file
+            plots_dict = operation_file.read_json_file(plot_file_name)
+            i = 1
+            for plot_key in plots_dict.keys():
+                if plots_dict[plot_key].get('地址') is None:
+                    plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key])
+                    i += 1
+                if i % config.save_file_number == 0:
+                    operation_file.write_json_file(plot_file_name, plots_dict)
+            operation_file.write_json_file(plot_file_name, plots_dict)
+
+    def _get_plot_detail(self, plot_dict):
+        '''获取小区的详细数据
+        访问小区字典中的小区详情 URL, 并将得到的 HTML 转换为 etree 对象
+        获取所有详情数据, 地址, 经纬度等等
+        Args:
+            plot_dict: 小区信息字典, 当前仅有小区名称及小区详情页URL
+        return:
+            dict, 小区完整信息字典
+        '''
+        common.print_and_sleep('采集{name}小区详情:{url}'.format(name=plot_dict['plot_name'], url=plot_dict['plot_url']))
+        plot_detail_etree = gather.get_html_to_etree(plot_dict['plot_url'], headers=self.headers)
+        plot_dict['地址'] = plot_detail_etree.xpath(self.plot_detail_address_xpath)[0]
+        plot_dict['地址链'] = '>'.join(plot_detail_etree.xpath(self.plot_detail_area_xpath))
+        try:
+            plot_dict['经纬度'] = plot_detail_etree.xpath(self.plot_detail_nautica_xpath)[0]
+        except IndexError:
+            plot_dict['经纬度'] = ''
+        plot_dict.update(zip(plot_detail_etree.xpath(self.plot_detail_other_keys_xpath), plot_detail_etree.xpath(self.plot_detail_other_values_xpath)))
+        return plot_dict
 
     def run(self):
         '''采集器运行
@@ -92,3 +134,4 @@ class 链家:
         if self.have_city_json is False:
             self.get_citys()
         self.get_all_city_plots()
+        self.get_all_plot_detail()
