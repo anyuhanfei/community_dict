@@ -35,6 +35,7 @@ class 房产超市:
         获取城市信息的 a 标签, 并从 a 标签中拿出城市名和城市 URL, 将这些数据保存到字典类型的变量中
         将数据保存到 JSON 文件中
         '''
+        common.print_and_sleep('采集城市列表: {url}'.format(url=self.citys_url))
         city_list_etree = gather.get_html_to_etree(self.citys_url, coding=self.coding, headers=self.headers)
         city_dict = dict()
         for city_etree in city_list_etree.xpath(self.citys_xpath):
@@ -54,14 +55,14 @@ class 房产超市:
         area_num, plots_dict = 1, dict()
         while True:
             temp_plots_url = plots_url.format(area_num=area_num, page=1)
-            common.print_and_sleep('采集{area_num}小区第{page}页: {url}'.format(area_num=area_num, page=1, url=temp_plots_url))
+            common.print_and_sleep('采集{city_name}城市第{area_num}区域第{page}页: {url}'.format(city_name=city_name, area_num=area_num, page=1, url=temp_plots_url))
             plots_dict, is_exist = self._get_plots(plots_dict, temp_plots_url)
             if is_exist is False:
                 break
             page = 2
             while True:
                 temp_plots_url = plots_url.format(area_num=area_num, page=page)
-                common.print_and_sleep('采集{area_num}小区第{page}页: {url}'.format(area_num=area_num, page=page, url=temp_plots_url))
+                common.print_and_sleep('采集{city_name}城市第{area_num}区域第{page}页: {url}'.format(city_name=city_name, area_num=area_num, page=page, url=temp_plots_url))
                 plots_dict, is_exist = self._get_plots(plots_dict, temp_plots_url)
                 if is_exist is False:
                     break
@@ -89,12 +90,20 @@ class 房产超市:
         return plots_dict, bool(len(plots_a_etree))
 
     def get_plots_detail(self, file_name):
+        '''获取当前城市的小区详细信息
+        读取小区信息文件, 并循环每个小区信息
+        判断此小区是否已采集过详细信息(这里按`地址`这个键来判断), 没有采集则采集详细信息
+        每采集20个小区的详细信息则保存一次数据, 小区采集结束后也会保存一次数据
+        Args:
+            file_name: 单城市的小区信息文件
+        '''
         plots_dict = operation_file.read_json_file(file_name)
         i = 1
         for key in plots_dict.keys():
-            common.print_and_sleep('采集{name}小区详情: {url}'.format(name=key, url=plots_dict[key]['plot_url']))
-            plots_dict[key] = self._get_plot_detail(plots_dict[key])
-            i += 1
+            if plots_dict[key].get('地址') is None:
+                common.print_and_sleep('采集{name}小区详情: {url}'.format(name=key, url=plots_dict[key]['plot_url']))
+                plots_dict[key] = self._get_plot_detail(plots_dict[key])
+                i += 1
             if i % config.save_file_number == 0:
                 common.print_and_sleep('更新文件:{file_name}'.format(file_name=file_name))
                 operation_file.write_json_file(file_name, plots_dict)
@@ -102,6 +111,15 @@ class 房产超市:
         operation_file.write_json_file(file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):
+        '''获取当前小区的详细信息
+        访问小区的详情URL, 并将 HTML 转换为 etree 对象
+        采集地址, 地址链, 经纬度以及其他信息
+        将采集的信息整合到旧字典中并返回
+        Args:
+            plot_dict: 小区的当前信息数据, 包含小区名和小区详情URL
+        return:
+            dict 小区的最新信息数据
+        '''
         etree = gather.get_html_to_etree(plot_dict['plot_url'], coding=self.coding)
         plot_dict['地址'] = etree.xpath(self.地址_xpath)[1].split('\r\n')[0]
         plot_dict['地址链'] = '>'.join(etree.xpath(self.地址链_xpath))
@@ -115,11 +133,15 @@ class 房产超市:
         return plot_dict
 
     def run(self):
+        '''执行文件
+        第一步: 获取城市列表
+        第二步: 获取每个城市的小区基本信息
+        第三步: 获取所有小区的详情信息
+        '''
         if os.path.exists(self.citys_file_name) is False:
             self.get_citys()
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
-            if os.path.exists(self.plots_file_name) is False:
+            if os.path.exists(config.房产超市_plots_file_name.format(city_name=city_value['city_name'])) is False:
                 self.get_plots(city_value['city_name'], city_value['city_url'])
-                return
         for file_name in os.listdir(self.plots_dir_name):
             self.get_plots_detail(self.plots_dir_name + file_name)

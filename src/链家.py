@@ -21,7 +21,7 @@ class 链家:
     plot_detail_other_values_xpath = '//span[@class="xiaoquInfoContent"]/text()'  # 小区其他详情数据的值xpath
 
     def __init__(self):
-        self.have_city_json = os.path.exists(config.链家_city_json_file_name)
+        pass
 
     def get_citys(self):
         '''获取城市列表
@@ -32,8 +32,9 @@ class 链家:
         city_etree = gather.get_html_to_etree(self.city_url, headers=self.headers)
         city_etree = city_etree.xpath(self.city_list_xpath)
         citys = dict()
-        for i in range(0, len(city_etree)):
-            citys[i] = {'city_name': city_etree[i].xpath('text()')[0], 'city_url': config.链家_plot_list_url.format(city_url=city_etree[i].xpath('@href')[0], page="{page}")}
+        for city in city_etree.xpath(self.city_list_xpath):
+            city_name, city_url = city.xpath('text()')[0], config.链家_plot_list_url.format(city_url=city.xpath('@href')[0], page="{page}")
+            citys[city_name] = {'city_name': city_name, 'city_url': city_url}
         operation_file.write_json_file(config.链家_city_json_file_name, citys)
 
     def get_all_city_plots(self):
@@ -43,13 +44,10 @@ class 链家:
         判断当前城市小区的 JSON 文件是否存在, 如果存在则说明此城市已完成采集, 跳过当前城市
         通过判断则采集当前城市小区数据
         '''
-        citys = operation_file.read_json_file(config.链家_city_json_file_name)
-
-        for i in range(0, len(citys)):
-            city_name, city_url = citys[str(i)]['city_name'], citys[str(i)]['city_url']
-            if os.path.exists(config.链家_plot_json_file_name.format(file_name=city_name)) is True:
+        for city_key, city_value in operation_file.read_json_file(config.链家_city_json_file_name).items():
+            if os.path.exists(config.链家_plot_json_file_name.format(file_name=city_value['city_name'])) is True:
                 continue
-            self._get_plots(city_name, city_url)
+            self._get_plots(city_value['city_name'], city_value['city_url'])
 
     def _get_plots(self, city_name, city_url):
         '''获取城市中的小区
@@ -78,8 +76,7 @@ class 链家:
                     print('获取最大页码异常, 跳过当前城市: {city_name}'.format(city_name=city_name))
                     return
             # 获取小区名称及url
-            plot_etree_list = plot_etree.xpath(self.plot_list_xpath)
-            for plot_etree in plot_etree_list:
+            for plot_etree in plot_etree.xpath(self.plot_list_xpath):
                 plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
                 plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': plot_url}
             # 下次循环的准备
@@ -92,8 +89,7 @@ class 链家:
         # 读取每个文件中的 json 数据
         # 判断每个小区数据, 如果没有详细数据则获取
         # 每获取 100 个小区数据或者本文件读取结束, 保存
-        plot_files = os.listdir(config.链家_plot_json_dir_name)
-        for plot_file in plot_files:
+        for plot_file in os.listdir(config.链家_plot_json_dir_name):
             plot_file_name = config.链家_plot_json_dir_name + plot_file
             plots_dict = operation_file.read_json_file(plot_file_name)
             i = 1
@@ -131,7 +127,7 @@ class 链家:
         第二步: 采集城市小区的基本数据
         第三步: 采集小区的详细数据
         '''
-        if self.have_city_json is False:
+        if os.path.exists(config.链家_city_json_file_name) is False:
             self.get_citys()
         self.get_all_city_plots()
         self.get_all_plot_detail()
