@@ -12,7 +12,7 @@ universal_headers = {
 # 最终数据保存名称
 plot_file_name = "./data/{domain}/{city}小区.json"
 # 每次采集时间间隔
-time_interval = 2
+time_interval = 5
 # 小区详情获取数量后保存文件
 save_file_number = 20
 

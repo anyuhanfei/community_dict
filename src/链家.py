@@ -30,7 +30,6 @@ class 链家:
         从 a 标签中取出城市名和城市对应的 URL, 保存至 JSON 文件中
         '''
         city_etree = gather.get_html_to_etree(self.city_url, headers=self.headers)
-        city_etree = city_etree.xpath(self.city_list_xpath)
         citys = dict()
         for city in city_etree.xpath(self.city_list_xpath):
             city_name, city_url = city.xpath('text()')[0], config.链家_plot_list_url.format(city_url=city.xpath('@href')[0], page="{page}")
