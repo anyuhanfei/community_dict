@@ -30,17 +30,6 @@ save_file_number = 20
 链家_plot_json_dir_name = "./data/链家/"
 
 '''
-智慧小区
-'''
-智慧小区_area_list_url = 'https://www.zhihuixiaoqu.com/index/index/xiaoqudaquan?page={page}'
-智慧小区_plot_list_url = 'https://www.zhihuixiaoqu.com/index/index/{area_url}&page={page}'
-智慧小区_plot_detail_url = 'https://www.zhihuixiaoqu.com/index/index/{plot_url}'
-
-智慧小区_area_json_file_name = "./temp/智慧小区_area.json"
-智慧小区_plot_json_file_name = "./data/智慧小区/{area_name}小区.json"
-
-
-'''
 房产超市
 '''
 房产超市_citys_url = "http://www.fccs.com/"
