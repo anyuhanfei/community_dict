@@ -20,6 +20,8 @@ class 链家:
     plot_detail_other_keys_xpath = '//span[@class="xiaoquInfoLabel"]/text()'  # 小区其他详情数据的键xpath
     plot_detail_other_values_xpath = '//span[@class="xiaoquInfoContent"]/text()'  # 小区其他详情数据的值xpath
 
+    continue_city_name_list = ['滁州', '秦皇岛', '保亭', '澄迈', '儋州', '临高', '乐东', '陵水', '琼海', '五指山', '文昌', '万宁', '三门峡', '宜昌', '海门', '昆山', '徐州', '长春', '包头', '菏泽', '济宁', '泰安', '德阳', '巴中', '广元', '乐山', '眉山', '南充', '遂宁', '西安', '晋中', '乌鲁木齐', '大理', '西双版纳', '嘉兴', '衢州', '义乌']
+
     def __init__(self):
         pass
 
@@ -44,7 +46,7 @@ class 链家:
         通过判断则采集当前城市小区数据
         '''
         for city_key, city_value in operation_file.read_json_file(config.链家_city_json_file_name).items():
-            if os.path.exists(config.链家_plot_json_file_name.format(file_name=city_value['city_name'])) is True:
+            if os.path.exists(config.链家_plot_json_file_name.format(file_name=city_value['city_name'])) is True or self.continue_city_name_list.count(city_value['city_name']) >= 1:
                 continue
             self._get_plots(city_value['city_name'], city_value['city_url'])
 
@@ -81,6 +83,7 @@ class 链家:
             # 下次循环的准备
             page += 1
         # 将数据保存至文件中
+        common.print_and_sleep('{city_name}采集结束,保存数据'.format(city_name=city_name))
         operation_file.write_json_file(config.链家_plot_json_file_name.format(file_name=city_name), plot_dict)
 
     def get_all_plot_detail(self):
@@ -97,7 +100,9 @@ class 链家:
                     plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key])
                     i += 1
                 if i % config.save_file_number == 0:
+                    common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
                     operation_file.write_json_file(plot_file_name, plots_dict)
+            common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
             operation_file.write_json_file(plot_file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):
