@@ -111,7 +111,11 @@ class 链家:
         '''
         common.print_and_sleep('采集{name}小区详情:{url}'.format(name=plot_dict['plot_name'], url=plot_dict['plot_url']))
         plot_detail_etree = gather.get_html_to_etree(plot_dict['plot_url'], headers=self.headers)
-        plot_dict['地址'] = plot_detail_etree.xpath(self.plot_detail_address_xpath)[0]
+        try:
+            plot_dict['地址'] = plot_detail_etree.xpath(self.plot_detail_address_xpath)[0]
+        except BaseException:
+            plot_dict['地址'] = ''
+            return plot_dict
         plot_dict['地址链'] = '>'.join(plot_detail_etree.xpath(self.plot_detail_area_xpath))
         try:
             plot_dict['经纬度'] = plot_detail_etree.xpath(self.plot_detail_nautica_xpath)[0]
