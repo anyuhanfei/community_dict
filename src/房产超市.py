@@ -105,9 +105,9 @@ class 房产超市:
                 plots_dict[key] = self._get_plot_detail(plots_dict[key])
                 i += 1
             if i % config.save_file_number == 0:
-                common.print_and_sleep('更新文件:{file_name}'.format(file_name=file_name))
+                print('更新文件:{file_name}'.format(file_name=file_name))
                 operation_file.write_json_file(file_name, plots_dict)
-        common.print_and_sleep('更新文件:{file_name}'.format(file_name=file_name))
+        print('更新文件:{file_name}'.format(file_name=file_name))
         operation_file.write_json_file(file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):
