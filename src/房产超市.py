@@ -6,8 +6,8 @@ from utils import common, gather, operation_file
 
 
 class 房产超市:
-    citys_url = config.房产超市_citys_url
-    plots_url = config.房产超市_plots_url
+    citys_url = "http://www.fccs.com/"
+    plots_url = "{city_url}/sitemap-xq/search/a{area_num}_p{page}.html"
 
     headers = config.universal_headers
 
@@ -22,9 +22,9 @@ class 房产超市:
     经度_re = 'bmapx=(.*?);'
     纬度_re = 'bmapy=(.*?);'
 
-    citys_file_name = config.房产超市_citys_file_name
-    plots_file_name = config.房产超市_plots_file_name
-    plots_dir_name = config.房产超市_plots_dir_name
+    citys_file_name = './temp/房产超市_city.json'
+    plots_file_name = './data/房产超市/{city_name}.json'
+    plots_dir_name = "./data/房产超市/"
 
     def __init__(self):
         pass
@@ -107,8 +107,9 @@ class 房产超市:
             if i % config.save_file_number == 0:
                 print('更新文件:{file_name}'.format(file_name=file_name))
                 operation_file.write_json_file(file_name, plots_dict)
-        print('更新文件:{file_name}'.format(file_name=file_name))
-        operation_file.write_json_file(file_name, plots_dict)
+        if i > 1:
+            print('更新文件:{file_name}'.format(file_name=file_name))
+            operation_file.write_json_file(file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):
         '''获取当前小区的详细信息
@@ -132,7 +133,7 @@ class 房产超市:
         return plot_dict
 
     def run(self):
-        '''执行文件
+        '''执行函数
         第一步: 获取城市列表
         第二步: 获取每个城市的小区基本信息
         第三步: 获取所有小区的详情信息
@@ -140,7 +141,7 @@ class 房产超市:
         if os.path.exists(self.citys_file_name) is False:
             self.get_citys()
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
-            if os.path.exists(config.房产超市_plots_file_name.format(city_name=city_value['city_name'])) is False:
+            if os.path.exists(self.plots_file_name.format(city_name=city_value['city_name'])) is False:
                 self.get_plots(city_value['city_name'], city_value['city_url'])
         for file_name in os.listdir(self.plots_dir_name):
             self.get_plots_detail(self.plots_dir_name + file_name)
