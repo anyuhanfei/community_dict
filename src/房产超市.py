@@ -120,14 +120,13 @@ class 房产超市:
         return:
             dict 小区的最新信息数据
         '''
-        etree = gather.get_html_to_etree(plot_dict['plot_url'], coding=self.coding)
+        html, etree = gather.get_html_and_etree(plot_dict['plot_url'], coding=self.coding)
         plot_dict['地址'] = etree.xpath(self.地址_xpath)[1].split('\r\n')[0]
         plot_dict['地址链'] = '>'.join(etree.xpath(self.地址链_xpath))
         plot_dict.update(zip(etree.xpath(self.详情_keys_xpath), etree.xpath(self.详情_values_xpath)))
         # 经纬度
-        plot_html = gather.get_html(plot_dict['plot_url'], coding=self.coding)
         try:
-            plot_dict['经纬度'] = ",".join([re.findall(self.经度_re, plot_html)[0], re.findall(self.纬度_re, plot_html)[0]])
+            plot_dict['经纬度'] = ",".join([re.findall(self.经度_re, html)[0], re.findall(self.纬度_re, html)[0]])
         except IndexError:
             plot_dict['经纬度'] = ""
         return plot_dict
