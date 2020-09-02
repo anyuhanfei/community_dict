@@ -3,7 +3,7 @@
     为了与正式运行的执行文件分开
 '''
 
-from src import 房产超市
+from src import 搜房
 
-obj = 房产超市.房产超市()
+obj = 搜房.搜房()
 obj.run()

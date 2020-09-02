@@ -5,29 +5,28 @@ from utils import operation_file, gather, common
 from config import config
 
 
-class 贝壳:
-    '''贝壳网小区信息采集
+class 搜房:
+    '''搜房网小区信息采集
+    反爬严重, 暂时不采集
     '''
     headers = config.universal_headers
 
-    citys_url = "https://www.ke.com/city/"
-    plots_url = "https:{domain}/xiaoqu"
+    citys_url = "https://zz.sofang.com/city/citysList"
+    plots_url = "{domain}/saleesb/area/bl{page}?"
     plots_area_url = "https:{domain}{area_url}pg{page}"
 
-    citys_file_name = './temp/贝壳_city.json'
-    plots_file_name = './data/贝壳/{city}.json'
-    plots_dir_name = './data/贝壳/'
+    citys_file_name = './temp/搜房_city.json'
+    plots_file_name = './data/搜房/{city}.json'
+    plots_dir_name = './data/搜房/'
 
-    citys_xpath = '//div[@data-action="Uicode=选择城市_国内"]/div[@class="city_list_section"]/ul[@class="city_list_ul"]/li/div[@class="city_list"]/div/ul/li/a'
-    plots_area_url_xpath = '//a[@class=" CLICKDATA"]/@href'
-    plots_area_name_xpath = '//a[@class=" CLICKDATA"]/text()'
-    plots_xpath = '//a[@class="maidian-detail"]'
-    plots_error_xpath = '//div[@class="sec-list-nav clearfix"]'
-    地址_xpath = '//div[@class="sub"]/text()'
-    地址链_xpath = '//div[@class="fl l-txt"]/a/text()'
-    详情_keys_xpath = '//span[@class="xiaoquInfoLabel"]/text()'
-    详情_values_xpath = '//span[@class="xiaoquInfoContent"]/text()'
-    经纬度_re = "resblockPosition:'(.*?)',"
+    citys_xpath = '//ul[@class="current"]/li/p/a'
+    page_maximum_xpath = '//div[@class="page_nav"]/ul/li[last()]/a/@alt'
+    plots_xpath = '//dd[@class="house_msg"]/p/a'
+    地址_xpath = '//div[@class="conTop_adress fl"]/h3/text()'
+    详情_keys_xpath = '//div[@class="real_detail detail_tit"]/ul/li/label/text()'
+    详情_values_xpath = '//div[@class="real_detail detail_tit"]/ul/li/span/text()'
+    经度_re = ''
+    纬度_re = ''
 
     def __init__(self):
         pass
@@ -38,6 +37,7 @@ class 贝壳:
         获取城市信息的 a 标签, 并从 a 标签中拿出城市名和城市 URL, 将这些数据保存到字典类型的变量中
         将数据保存到 JSON 文件中
         '''
+        print('采集城市列表')
         etree = gather.get_html_to_etree(self.citys_url, headers=self.headers)
         citys_etree = etree.xpath(self.citys_xpath)
         citys_dict = dict()
@@ -57,28 +57,23 @@ class 贝壳:
         若有小区数据则将小区数据暂存在字典中
         所有循环结束, 当前城市小区基本数据采集结束, 保存至 JSON 文件中
         '''
-        temp_url = self.plots_url.format(domain=city_url)
-        etree = gather.get_html_to_etree(temp_url, headers=self.headers)
-        common.print_and_sleep('采集{city_name}小区: {url}'.format(city_name=city_name, url=temp_url))
-        if etree.xpath(self.plots_error_xpath) != []:
-            print('{city_name}城市无小区列表'.format(city_name=city_name))
-            return
-        area_dict, plots_dict = dict(), dict()
-        area_dict.update(zip(etree.xpath(self.plots_area_name_xpath), etree.xpath(self.plots_area_url_xpath)))
-        for area_name, area_url in area_dict.items():
-            page = 1
-            while page <= 100:
-                url = self.plots_area_url.format(domain=city_url, area_url=area_url, page=page)
-                common.print_and_sleep('采集{city}城市{area}第{page}页: {url}'.format(city=city_name, area=area_name, page=page, url=url))
-                plots_etree = gather.get_html_to_etree(url, headers=self.headers).xpath(self.plots_xpath)
-                if plots_etree == []:
-                    break
-                for plot_etree in plots_etree:
-                    plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
-                    plots_dict[plot_name] = {'plot_name': plot_name, 'plot_url': plot_url}
-                page += 1
-        print('{city}城市小区列表采集完成'.format(city=city_name))
-        operation_file.write_json_file(self.plots_fiel_name.format(city=city_name), plots_dict)
+        page_maximum, page, plot_dict = 1, 1, dict()
+        while page <= page_maximum:
+            plot_url = self.plots_url.format(domain=city_url, page=page)
+            common.print_and_sleep('采集{city}第{page}页: {url}'.format(city=city_name, page=page, url=plot_url))
+            plot_etree = gather.get_html_to_etree(plot_url, headers=self.headers)
+            if page_maximum == 1 and page == 1:
+                try:
+                    page_maximum = int(plot_etree.xpath(self.page_maximum_xpath)[0])
+                except BaseException:
+                    print('获取最大页码异常, 跳过当前城市: {city_name}'.format(city_name=city_name))
+                    return
+            for plot_etree in plot_etree.xpath(self.plots_xpath):
+                plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
+                plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': 'https://' + city_url + '/' + plot_url}
+            page += 1
+        common.print_and_sleep('{city_name}采集结束,保存数据'.format(city_name=city_name))
+        operation_file.write_json_file(self.plots_file_name.format(file_name=city_name), plot_dict)
 
     def get_plots_detail(self, file_name):
         '''获取当前城市的小区详细信息
@@ -118,11 +113,10 @@ class 贝壳:
         except IndexError:
             plot_dict['地址'] = ''
             return plot_dict
-        plot_dict['地址链'] = '>'.join(etree.xpath(self.地址链_xpath))
         plot_dict.update(zip(etree.xpath(self.详情_keys_xpath), etree.xpath(self.详情_values_xpath)))
-        plot_dict['经纬度'] = re.findall(self.经纬度_re, html)[0]
+        plot_dict['经纬度'] = ','.join([re.findall(self.经度_re, html)[0], re.findall(self.纬度_re, html)[0]])
         for key in plot_dict.keys():
-            plot_dict[key] = plot_dict[key].replace(' ', '').replace('\n', '')
+            plot_dict[key] = plot_dict[key].replace(' : ', '')
         return plot_dict
 
     def run(self):
