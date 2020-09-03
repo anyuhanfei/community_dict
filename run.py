@@ -28,7 +28,7 @@ def worker(obj):
 
 obj_list = [房产超市.房产超市(), 链家.链家(), 搜楼啦.搜楼啦(), 贝壳.贝壳()]
 jobs = []
-for i in range(5):
+for i in range(0, len(obj_list)):
     p = multiprocessing.Process(target=worker, args=(obj_list[i],))
     jobs.append(p)
     p.start()
