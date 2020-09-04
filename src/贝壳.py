@@ -78,7 +78,7 @@ class 贝壳:
                     plots_dict[plot_name] = {'plot_name': plot_name, 'plot_url': plot_url}
                 page += 1
         print('{city}城市小区列表采集完成'.format(city=city_name))
-        operation_file.write_json_file(self.plots_fiel_name.format(city=city_name), plots_dict)
+        operation_file.write_json_file(self.plots_file_name.format(city=city_name), plots_dict)
         del plots_dict
 
     def get_plots_detail(self, file_name):
