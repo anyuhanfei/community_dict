@@ -79,6 +79,7 @@ class 贝壳:
                 page += 1
         print('{city}城市小区列表采集完成'.format(city=city_name))
         operation_file.write_json_file(self.plots_fiel_name.format(city=city_name), plots_dict)
+        del plots_dict
 
     def get_plots_detail(self, file_name):
         '''获取当前城市的小区详细信息
@@ -123,6 +124,8 @@ class 贝壳:
         plot_dict['经纬度'] = re.findall(self.经纬度_re, html)[0]
         for key in plot_dict.keys():
             plot_dict[key] = plot_dict[key].replace(' ', '').replace('\n', '')
+        del html
+        del etree
         return plot_dict
 
     def run(self):
@@ -136,5 +139,5 @@ class 贝壳:
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
             if os.path.exists(self.plots_file_name.format(city=city_key)) is False:
                 self.get_plots(city_value['city_name'], city_value['city_url'])
-            for file_name in os.listdir(self.plots_dir_name):
-                self.get_plots_detail(self.plots_dir_name + file_name)
+        for file_name in os.listdir(self.plots_dir_name):
+            self.get_plots_detail(self.plots_dir_name + file_name)

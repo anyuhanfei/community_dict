@@ -110,6 +110,7 @@ class 房产超市:
         if i > 1:
             print('更新文件:{file_name}'.format(file_name=file_name))
             operation_file.write_json_file(file_name, plots_dict)
+        del plots_dict
 
     def _get_plot_detail(self, plot_dict):
         '''获取当前小区的详细信息
@@ -130,6 +131,8 @@ class 房产超市:
             plot_dict['经纬度'] = ",".join([re.findall(self.经度_re, html)[0], re.findall(self.纬度_re, html)[0]])
         except IndexError:
             plot_dict['经纬度'] = ""
+        del html
+        del etree
         return plot_dict
 
     def run(self):

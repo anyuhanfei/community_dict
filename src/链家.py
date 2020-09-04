@@ -109,6 +109,7 @@ class 链家:
                     operation_file.write_json_file(plot_file_name, plots_dict)
             common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
             operation_file.write_json_file(plot_file_name, plots_dict)
+            del plots_dict
 
     def _get_plot_detail(self, plot_dict):
         '''获取小区的详细数据
@@ -120,18 +121,19 @@ class 链家:
             dict, 小区完整信息字典
         '''
         common.print_and_sleep('采集{name}小区详情:{url}'.format(name=plot_dict['plot_name'], url=plot_dict['plot_url']))
-        plot_detail_etree = gather.get_html_to_etree(plot_dict['plot_url'], headers=self.headers)
+        etree = gather.get_html_to_etree(plot_dict['plot_url'], headers=self.headers)
         try:
-            plot_dict['地址'] = plot_detail_etree.xpath(self.plot_detail_address_xpath)[0]
+            plot_dict['地址'] = etree.xpath(self.plot_detail_address_xpath)[0]
         except BaseException:
             plot_dict['地址'] = ''
             return plot_dict
-        plot_dict['地址链'] = '>'.join(plot_detail_etree.xpath(self.plot_detail_area_xpath))
+        plot_dict['地址链'] = '>'.join(etree.xpath(self.plot_detail_area_xpath))
         try:
-            plot_dict['经纬度'] = plot_detail_etree.xpath(self.plot_detail_nautica_xpath)[0]
+            plot_dict['经纬度'] = etree.xpath(self.plot_detail_nautica_xpath)[0]
         except IndexError:
             plot_dict['经纬度'] = ''
-        plot_dict.update(zip(plot_detail_etree.xpath(self.plot_detail_other_keys_xpath), plot_detail_etree.xpath(self.plot_detail_other_values_xpath)))
+        plot_dict.update(zip(etree.xpath(self.plot_detail_other_keys_xpath), etree.xpath(self.plot_detail_other_values_xpath)))
+        del etree
         return plot_dict
 
     def run(self):

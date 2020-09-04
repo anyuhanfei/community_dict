@@ -81,6 +81,7 @@ class 搜楼啦:
                 operation_file.write_json_file(plots_file_name, plots_dict)
         print('更新文件: {file_name}'.format(file_name=plots_file_name))
         operation_file.write_json_file(plots_file_name, plots_dict)
+        del plots_dict
 
     def _get_plot_detail(self, plot_dict, city_url):
         '''获取某一小区的详细数据
@@ -110,6 +111,8 @@ class 搜楼啦:
             new_plot_dict['经纬度'] = ",".join(经纬度)
         except BaseException:
             new_plot_dict['经纬度'] = ''
+        del html
+        del etree
         return new_plot_dict
 
     def run(self):
@@ -123,5 +126,5 @@ class 搜楼啦:
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
             if os.path.exists(self.plots_file_name.format(city_name=city_value['city_name'])) is False:
                 self.get_plots(city_value['city_name'], self.plots_url.format(city_domain=city_value['city_url'], page="{page}"))
-            for file_name in os.listdir(self.plots_dir_name):
-                self.get_plots_detail(self.plots_dir_name + file_name, city_value['city_url'])
+        for file_name in os.listdir(self.plots_dir_name):
+            self.get_plots_detail(self.plots_dir_name + file_name, city_value['city_url'])
