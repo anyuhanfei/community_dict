@@ -109,7 +109,6 @@ class 链家:
                     operation_file.write_json_file(plot_file_name, plots_dict)
             common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
             operation_file.write_json_file(plot_file_name, plots_dict)
-            del plots_dict
 
     def _get_plot_detail(self, plot_dict):
         '''获取小区的详细数据
@@ -133,7 +132,6 @@ class 链家:
         except IndexError:
             plot_dict['经纬度'] = ''
         plot_dict.update(zip(etree.xpath(self.plot_detail_other_keys_xpath), etree.xpath(self.plot_detail_other_values_xpath)))
-        del etree
         return plot_dict
 
     def run(self):

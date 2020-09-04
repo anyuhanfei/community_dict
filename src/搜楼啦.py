@@ -81,7 +81,6 @@ class 搜楼啦:
                 operation_file.write_json_file(plots_file_name, plots_dict)
         print('更新文件: {file_name}'.format(file_name=plots_file_name))
         operation_file.write_json_file(plots_file_name, plots_dict)
-        del plots_dict
 
     def _get_plot_detail(self, plot_dict, city_url):
         '''获取某一小区的详细数据
@@ -111,8 +110,6 @@ class 搜楼啦:
             new_plot_dict['经纬度'] = ",".join(经纬度)
         except BaseException:
             new_plot_dict['经纬度'] = ''
-        del html
-        del etree
         return new_plot_dict
 
     def run(self):
