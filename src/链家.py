@@ -107,8 +107,9 @@ class 链家:
                 if i % config.save_file_number == 0:
                     print('更新文件: {file_name}'.format(file_name=plot_file_name))
                     operation_file.write_json_file(plot_file_name, plots_dict)
-            print('更新文件: {file_name}'.format(file_name=plot_file_name))
-            operation_file.write_json_file(plot_file_name, plots_dict)
+            if i > 1:
+                print('更新文件: {file_name}'.format(file_name=plot_file_name))
+                operation_file.write_json_file(plot_file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):
         '''获取小区的详细数据
