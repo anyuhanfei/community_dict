@@ -105,9 +105,9 @@ class 链家:
                     plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key])
                     i += 1
                 if i % config.save_file_number == 0:
-                    common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
+                    print('更新文件: {file_name}'.format(file_name=plot_file_name))
                     operation_file.write_json_file(plot_file_name, plots_dict)
-            common.print_and_sleep('更新文件: {file_name}'.format(file_name=plot_file_name))
+            print('更新文件: {file_name}'.format(file_name=plot_file_name))
             operation_file.write_json_file(plot_file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict):

@@ -58,6 +58,9 @@ class 贝壳:
         所有循环结束, 当前城市小区基本数据采集结束, 保存至 JSON 文件中
         '''
         temp_url = self.plots_url.format(domain=city_url)
+        if temp_url.count('.fang.') >= 1:
+            print('{city_name}城市无小区列表'.format(city_name=city_name))
+            return
         etree = gather.get_html_to_etree(temp_url, headers=self.headers)
         common.print_and_sleep('采集{city_name}小区: {url}'.format(city_name=city_name, url=temp_url))
         if etree.xpath(self.plots_error_xpath) != []:
