@@ -11,7 +11,7 @@ universal_headers = {
 }
 
 # 每次采集时间间隔
-time_interval = 0
+time_interval = 5
 
 # 小区详情获取数量后保存文件
 save_file_number = 20
