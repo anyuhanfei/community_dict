@@ -6,7 +6,11 @@ from config import config
 
 
 class 搜楼啦:
-    ''''''
+    '''
+    未解决问题:
+        在腾讯云 centos 服务器上, 采集城市时会不定时报错, 在 windows 本地运行则无问题. 最开始怀疑是ip被禁, 但本地单线程无阻塞运行一个小时无封IP现象.
+    目前此问题解决办法是, 这个不在 run.py 中执行, 而是手动在 test_run.py 中执行.
+    '''
     headers = config.universal_headers
 
     citys_url = "http://www.souloula.com/"
@@ -40,7 +44,7 @@ class 搜楼啦:
             citys_dict[city_name] = {'city_name': city_name, 'city_url': city_url}
         operation_file.write_json_file(self.citys_file_name, citys_dict)
 
-    def get_plots(self, city_name, plots_url):
+    def get_plots(self, city_name, city_url, plots_url):
         '''获取小区列表
         从第一页开始循环
         处理小区列表 URL(城市列表中的 URL 并非小区列表的 URL), 并访问, 然后将 HTML 转换为 etree 对象
@@ -56,13 +60,13 @@ class 搜楼啦:
                 break
             for plot_etree in plots_etree.xpath(self.plots_xpath):
                 plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
-                plots_dict[plot_name] = {'plot_name': plot_name, 'plot_url': plot_url}
+                plots_dict[plot_name] = {'plot_name': plot_name, 'plot_url': city_url + plot_url}
             page += 1
         plots_file_name = self.plots_file_name.format(city_name=city_name)
         common.print_and_sleep('{city_name}城市小区采集结束,保存数据至{file_name}'.format(city_name=city_name, file_name=plots_file_name))
         operation_file.write_json_file(plots_file_name, plots_dict)
 
-    def get_plots_detail(self, plots_file_name, city_url):
+    def get_plots_detail(self, plots_file_name):
         '''获取文件中的小区详情数据
         读取小区数据文件中的数据, 遍历
         判断当前小区数据中是否存在`地址`数据, 如果存在则已经获取过详细数据了, 如果没有则获取
@@ -74,7 +78,7 @@ class 搜楼啦:
         for plot_key in plots_dict.keys():
             if plots_dict[plot_key].get('地址') is None:
                 common.print_and_sleep('采集{name}小区详情: {url}'.format(name=plots_dict[plot_key]['plot_name'], url=plots_dict[plot_key]['plot_url']))
-                plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key], city_url)
+                plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key], plots_dict[plot_key]['plot_url'])
                 i += 1
             if i % config.save_file_number == 0:
                 print('更新文件: {file_name}'.format(file_name=plots_file_name))
@@ -82,14 +86,14 @@ class 搜楼啦:
         print('更新文件: {file_name}'.format(file_name=plots_file_name))
         operation_file.write_json_file(plots_file_name, plots_dict)
 
-    def _get_plot_detail(self, plot_dict, city_url):
+    def _get_plot_detail(self, plot_dict, url):
         '''获取某一小区的详细数据
         访问此小区详情URL, 获取 html 和 etree 对象
         获取小区详情信息, 此详情信息格式不规范, 需要逐个修正(xpath)
         获取小区经纬度(正则)
         将最新的数据返回
         '''
-        html, etree = gather.get_html_and_etree(city_url + '/' + plot_dict['plot_url'], headers=self.headers)
+        html, etree = gather.get_html_and_etree(url, headers=self.headers)
         try:
             plot_dict.update(zip(etree.xpath(self.详情_keys_xpath), etree.xpath(self.详情_values_xpath)))
         except BaseException:
@@ -122,6 +126,6 @@ class 搜楼啦:
             self.get_citys()
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
             if os.path.exists(self.plots_file_name.format(city_name=city_value['city_name'])) is False:
-                self.get_plots(city_value['city_name'], self.plots_url.format(city_domain=city_value['city_url'], page="{page}"))
+                self.get_plots(city_value['city_name'], city_value['city_url'], self.plots_url.format(city_domain=city_value['city_url'], page="{page}"))
         for file_name in os.listdir(self.plots_dir_name):
-            self.get_plots_detail(self.plots_dir_name + file_name, city_value['city_url'])
+            self.get_plots_detail(self.plots_dir_name + file_name)

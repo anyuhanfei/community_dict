@@ -3,7 +3,7 @@
     为了与正式运行的执行文件分开
 '''
 
-from src import 搜房
+from src import 搜楼啦
 
-obj = 搜房.搜房()
+obj = 搜楼啦.搜楼啦()
 obj.run()
