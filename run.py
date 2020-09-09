@@ -3,7 +3,7 @@
 '''
 import multiprocessing
 
-from src import 房产超市, 链家, 搜楼啦, 贝壳
+from src import 房产超市, 链家, 搜楼啦, 贝壳, 搜房
 
 # '''房产超市'''
 # obj = 房产超市.房产超市()
@@ -26,7 +26,7 @@ def worker(obj):
     obj.run()
 
 
-obj_list = [房产超市.房产超市(), 链家.链家(), 搜楼啦.搜楼啦(), 贝壳.贝壳()]
+obj_list = [房产超市.房产超市(), 链家.链家(), 贝壳.贝壳(), 搜房.搜房()]
 jobs = []
 for i in range(0, len(obj_list)):
     p = multiprocessing.Process(target=worker, args=(obj_list[i],))
