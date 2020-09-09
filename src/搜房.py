@@ -7,7 +7,6 @@ from config import config
 
 class 搜房:
     '''搜房网小区信息采集
-    反爬严重, 暂时不采集
     '''
     headers = config.universal_headers
 
@@ -70,10 +69,10 @@ class 搜房:
                     return
             for plot_etree in plot_etree.xpath(self.plots_xpath):
                 plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
-                plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': 'https://' + city_url + '/' + plot_url}
+                plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': city_url + '/' + plot_url}
             page += 1
         common.print_and_sleep('{city_name}采集结束,保存数据'.format(city_name=city_name))
-        operation_file.write_json_file(self.plots_file_name.format(file_name=city_name), plot_dict)
+        operation_file.write_json_file(self.plots_file_name.format(city=city_name), plot_dict)
 
     def get_plots_detail(self, file_name):
         '''获取当前城市的小区详细信息
@@ -113,10 +112,10 @@ class 搜房:
         except IndexError:
             plot_dict['地址'] = ''
             return plot_dict
-        plot_dict.update(zip(etree.xpath(self.详情_keys_xpath), etree.xpath(self.详情_values_xpath)))
+        keys = map(lambda key: key.replace('\xa0:\xa0', '').replace('\xa0:', ''), etree.xpath(self.详情_keys_xpath))
+        values = map(lambda value: value.replace('\r', '').replace('\n', '').replace('\t', ''), etree.xpath(self.详情_values_xpath))
+        plot_dict.update(zip(keys, values))
         plot_dict['经纬度'] = ','.join([re.findall(self.经度_re, html)[0], re.findall(self.纬度_re, html)[0]])
-        for key in plot_dict.keys():
-            plot_dict[key] = plot_dict[key].replace(' : ', '')
         return plot_dict
 
     def run(self):

@@ -13,7 +13,11 @@ def get_html(url, coding='UTF-8', **kwargv):
     return:
         etree 对象
     '''
-    res = requests.get(url, **kwargv)
+    try:
+        res = requests.get(url, **kwargv)
+    except BaseException:
+        print('连接失败, 正在重试')
+        res = requests.get(url, **kwargv)
     return res.content.decode(coding)
 
 
@@ -27,7 +31,11 @@ def get_html_to_etree(url, coding='UTF-8', **kwargv):
     return:
         etree 对象
     '''
-    res = requests.get(url, **kwargv)
+    try:
+        res = requests.get(url, **kwargv)
+    except BaseException:
+        print('连接失败, 正在重试')
+        res = requests.get(url, **kwargv)
     html = res.content.decode(coding)
     return etree.HTML(html)
 
@@ -42,7 +50,11 @@ def get_html_and_etree(url, coding='UTF-8', **kwargv):
     return:
         etree 对象
     '''
-    res = requests.get(url, **kwargv)
+    try:
+        res = requests.get(url, **kwargv)
+    except BaseException:
+        print('连接失败, 正在重试')
+        res = requests.get(url, **kwargv)
     html = res.content.decode(coding)
     return html, etree.HTML(html)
 

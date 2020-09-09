@@ -29,8 +29,8 @@ class 贝壳:
     详情_values_xpath = '//span[@class="xiaoquInfoContent"]/text()'
     经纬度_re = "resblockPosition:'(.*?)',"
 
-    def __init__(self):
-        pass
+    def __init__(self, proxies=[]):
+        self.proxies = proxies
 
     def get_citys(self):
         '''获取城市列表
