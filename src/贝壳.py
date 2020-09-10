@@ -97,9 +97,9 @@ class 贝壳:
                 common.print_and_sleep('采集{name}小区详情: {url}'.format(name=key, url=plots_dict[key]['plot_url']))
                 plots_dict[key] = self._get_plots_detail(plots_dict[key])
                 i += 1
-            if i % config.save_file_number == 0:
-                print('更新文件:{file_name}'.format(file_name=file_name))
-                operation_file.write_json_file(file_name, plots_dict)
+                if i % config.save_file_number == 0:
+                    print('更新文件:{file_name}'.format(file_name=file_name))
+                    operation_file.write_json_file(file_name, plots_dict)
         if i > 1:
             print('更新文件:{file_name}'.format(file_name=file_name))
             operation_file.write_json_file(file_name, plots_dict)

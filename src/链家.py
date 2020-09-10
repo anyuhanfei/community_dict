@@ -104,9 +104,9 @@ class 链家:
                 if plots_dict[plot_key].get('地址') is None:
                     plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key])
                     i += 1
-                if i % config.save_file_number == 0:
-                    print('更新文件: {file_name}'.format(file_name=plot_file_name))
-                    operation_file.write_json_file(plot_file_name, plots_dict)
+                    if i % config.save_file_number == 0:
+                        print('更新文件: {file_name}'.format(file_name=plot_file_name))
+                        operation_file.write_json_file(plot_file_name, plots_dict)
             if i > 1:
                 print('更新文件: {file_name}'.format(file_name=plot_file_name))
                 operation_file.write_json_file(plot_file_name, plots_dict)

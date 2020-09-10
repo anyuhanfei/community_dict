@@ -80,11 +80,12 @@ class 搜楼啦:
                 common.print_and_sleep('采集{name}小区详情: {url}'.format(name=plots_dict[plot_key]['plot_name'], url=plots_dict[plot_key]['plot_url']))
                 plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key], plots_dict[plot_key]['plot_url'])
                 i += 1
-            if i % config.save_file_number == 0:
-                print('更新文件: {file_name}'.format(file_name=plots_file_name))
-                operation_file.write_json_file(plots_file_name, plots_dict)
-        print('更新文件: {file_name}'.format(file_name=plots_file_name))
-        operation_file.write_json_file(plots_file_name, plots_dict)
+                if i % config.save_file_number == 0:
+                    print('更新文件: {file_name}'.format(file_name=plots_file_name))
+                    operation_file.write_json_file(plots_file_name, plots_dict)
+        if i > 1:
+            print('更新文件: {file_name}'.format(file_name=plots_file_name))
+            operation_file.write_json_file(plots_file_name, plots_dict)
 
     def _get_plot_detail(self, plot_dict, url):
         '''获取某一小区的详细数据
