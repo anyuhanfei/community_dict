@@ -24,8 +24,8 @@ class 搜房:
     地址_xpath = '//div[@class="conTop_adress fl"]/h3/text()'
     详情_keys_xpath = '//div[@class="real_detail detail_tit"]/ul/li/label/text()'
     详情_values_xpath = '//div[@class="real_detail detail_tit"]/ul/li/span/text()'
-    经度_re = ''
-    纬度_re = ''
+    经度_re = 'var longitude = "(.*?)"'
+    纬度_re = 'var latitude = "(.*?)"'
 
     def __init__(self):
         pass
@@ -65,13 +65,12 @@ class 搜房:
                 try:
                     page_maximum = int(plot_etree.xpath(self.page_maximum_xpath)[0])
                 except BaseException:
-                    print('获取最大页码异常, 跳过当前城市: {city_name}'.format(city_name=city_name))
-                    return
+                    page_maximum = 1
             for plot_etree in plot_etree.xpath(self.plots_xpath):
                 plot_name, plot_url = plot_etree.xpath('text()')[0], plot_etree.xpath('@href')[0]
                 plot_dict[plot_name] = {'plot_name': plot_name, 'plot_url': city_url + '/' + plot_url}
             page += 1
-        common.print_and_sleep('{city_name}采集结束,保存数据'.format(city_name=city_name))
+        print('{city_name}采集结束,保存数据'.format(city_name=city_name))
         operation_file.write_json_file(self.plots_file_name.format(city=city_name), plot_dict)
 
     def get_plots_detail(self, file_name):
@@ -129,5 +128,5 @@ class 搜房:
         for city_key, city_value in operation_file.read_json_file(self.citys_file_name).items():
             if os.path.exists(self.plots_file_name.format(city=city_key)) is False:
                 self.get_plots(city_value['city_name'], city_value['city_url'])
-            for file_name in os.listdir(self.plots_dir_name):
-                self.get_plots_detail(self.plots_dir_name + file_name)
+        for file_name in os.listdir(self.plots_dir_name):
+            self.get_plots_detail(self.plots_dir_name + file_name)
