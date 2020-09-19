@@ -76,7 +76,7 @@ class 搜楼啦:
         plots_dict = operation_file.read_json_file(plots_file_name)
         i = 1
         for plot_key in plots_dict.keys():
-            if plots_dict[plot_key].get('地址') is None:
+            if plots_dict[plot_key].get('经纬度') is None:
                 common.print_and_sleep('采集{name}小区详情: {url}'.format(name=plots_dict[plot_key]['plot_name'], url=plots_dict[plot_key]['plot_url']))
                 plots_dict[plot_key] = self._get_plot_detail(plots_dict[plot_key], plots_dict[plot_key]['plot_url'])
                 i += 1
