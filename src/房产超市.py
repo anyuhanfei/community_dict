@@ -122,7 +122,10 @@ class 房产超市:
             dict 小区的最新信息数据
         '''
         html, etree = gather.get_html_and_etree(plot_dict['plot_url'], coding=self.coding)
-        plot_dict['地址'] = etree.xpath(self.地址_xpath)[1].split('\r\n')[0]
+        try:
+            plot_dict['地址'] = etree.xpath(self.地址_xpath)[1].split('\r\n')[0]
+        except BaseException:
+            return plot_dict
         plot_dict['地址链'] = '>'.join(etree.xpath(self.地址链_xpath))
         plot_dict.update(zip(etree.xpath(self.详情_keys_xpath), etree.xpath(self.详情_values_xpath)))
         # 经纬度
